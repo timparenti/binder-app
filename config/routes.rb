@@ -120,7 +120,9 @@ Trailerapp::Application.routes.draw do
   resources :users
 
   get 'reports' => "reports#index", :as => :reports
-  
+
+  get 'logout' => "home#logout", :as => "logout"
+
   unless Rails.env.staging? or Rails.env.production?
     post 'dev_login' => "home#dev_login", :as => "dev_login"
   end

@@ -62,4 +62,8 @@ class ApplicationController < ActionController::Base
       redirect_to root_path, notice: "You are not authorized to see reports"
     end
   end
+
+  def after_sign_out_path_for(resource_or_scope)
+    Rails.env.production? or Rails.env.staging? ? logout_path : root_path
+  end
 end

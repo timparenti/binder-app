@@ -69,6 +69,10 @@ class HomeController < ApplicationController
     redirect_to root_url
   end
 
+  def logout
+    render "/Shibboleth.sso/Logout?return=/&"
+  end
+
   def hardhats
     @organizations = Organization.joins(:tools).distinct
     @total = Tool.hardhats.checked_out.count
