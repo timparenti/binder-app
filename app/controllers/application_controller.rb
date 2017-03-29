@@ -38,7 +38,7 @@ class ApplicationController < ActionController::Base
   def participant_already_in_system(participant)
     flash[:notice] = "The participant is already in the system - Update organizations for #{participant.name}"
   end
-  
+
   def sidebar
     @current_shifts_sidebar = Shift.current
     @upcoming_shifts_sidebar = Shift.upcoming
@@ -65,5 +65,6 @@ class ApplicationController < ActionController::Base
 
   def after_sign_out_path_for(resource_or_scope)
     Rails.env.production? or Rails.env.staging? ? logout_path : root_path
+    "https://login.cmu.edu/idp/profile/Logout"
   end
 end

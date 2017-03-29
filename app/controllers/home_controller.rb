@@ -70,7 +70,7 @@ class HomeController < ApplicationController
   end
 
   def logout
-    render "/Shibboleth.sso/Logout?return=/&"
+    render "/Shibboleth.sso/Logout"
   end
 
   def hardhats
