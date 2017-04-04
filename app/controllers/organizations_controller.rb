@@ -1,11 +1,20 @@
 class OrganizationsController < ApplicationController
   load_and_authorize_resource
-  
+
+  include CSVImportExport
+  before_filter :set_csv_descriptor, :only => [:index, :import]
+
   # GET /organizations
   # GET /organizations.json
   def index
     if (params[:type] == "building")
       @organizations = @organizations.only_categories(['Fraternity', 'Sorority', 'Independent', 'Blitz', 'Concessions'])
+    end
+
+    respond_to do |format|
+      format.html
+      authorize! :export, Shift
+      format.csv { send_data CSVImportExport.to_csv(Organization, @csv_attributes, @csv_dependents), filename: "orgs-#{Date.today}.csv" }
     end
   end
 
@@ -49,9 +58,19 @@ class OrganizationsController < ApplicationController
     @organization.destroy
     respond_with(@organization)
   end
-  
+
   def hardhats
     @hardhats = Tool.checked_out_by_organization(@organization).hardhats
+  end
+
+  def import
+    authorize! :import, Organization
+
+    if params[:delete_all_organizations] then Organization.destroy_all end
+    status = CSVImportExport.from_csv(Organization, @csv_attributes, @csv_dependents, params[:file])
+    message = CSVImportExport.as_message(Organization, status)
+
+    redirect_to :back, :flash => message
   end
 
   private
@@ -59,5 +78,9 @@ class OrganizationsController < ApplicationController
   def organization_params
     params.require(:organization).permit(:name, :short_name, :organization_category_id)
   end
-end
 
+  def set_csv_descriptor
+    @csv_attributes = ["id", "name", "short_name"]
+    @csv_dependents = [ [OrganizationCategory, lambda { | x | x.organization_category }, ["name"], ["organization_category"], "name"] ]
+  end
+end

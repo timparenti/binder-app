@@ -1,0 +1,40 @@
+<div class="page-header">
+  <h1>Admin Area</h1>
+</div>
+
+<% @models.each do | model | %>
+
+  <% if can?(:import, model) && can?(:export, model) %>
+    <% name = model.name.pluralize.downcase %>
+
+    <div class="panel panel-default">
+
+      <div class="panel-heading">
+        <div class="row">
+          <div class="col-xs-11">Manage <%= name %></div>
+          <div class="col-xs-1">
+            <a data-toggle="collapse" href="#<%= name %>" onclick='_toggleText(this, "Show", "Hide")' class="btn btn-info btn-xs">Show</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="<%= name %>" class="panel-collapse collapse">
+        <div class="panel-body">
+          <%= form_tag polymorphic_path(model, :action => 'import'), multipart: true do %>
+            <p><%= file_field_tag :file, :class => "form-control" %></p>
+            <p class="form-control">
+              <%= check_box_tag "delete_all_#{name}" %>
+              <%= label_tag "delete_all_#{name}", "Delete existing #{name} on import?" %>
+            </p>
+            <p>
+              <%= link_to "Export #{name}", polymorphic_path(model, :format => :csv), :class => "btn btn-primary" %>
+              <%= submit_tag "Import #{name}", :class => "btn btn-primary" %>
+            </p>
+          <% end %>
+        </div>
+      </div>
+
+    </div>
+  <% end %>
+
+<% end %>

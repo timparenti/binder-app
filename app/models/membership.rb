@@ -28,8 +28,8 @@ class Membership < ActiveRecord::Base
   validates_associated :participant, :organization
   validates_uniqueness_of :participant_id, :scope => :organization_id
 
-  belongs_to :organization
-  belongs_to :participant
+  belongs_to :organization, dependent: :destroy
+  belongs_to :participant, dependent: :destroy
 
   scope :booth_chairs, -> { where(:is_booth_chair => true).order('booth_chair_order ASC') }
 

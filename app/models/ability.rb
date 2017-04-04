@@ -70,7 +70,7 @@ class Ability
     if user.participant.is_scc?
       can :read, :all
       cannot :read, Role
-
+      cannot [:index], AdminAreaController
 
       can [:create, :update], Charge
       can [:create, :update], Checkout
@@ -94,6 +94,10 @@ class Ability
 
     if user.has_role? :admin
       can :manage, :all
+      can [:index], AdminAreaController
+      can [:import, :export], Tool
+      can [:import, :export], Shift
+      can [:import, :export], Membership
     end
   end
 end

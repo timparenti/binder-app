@@ -1,6 +1,9 @@
 class ToolsController < ApplicationController
   load_and_authorize_resource
-  
+
+  include CSVImportExport
+  before_filter :set_csv_descriptor, :only => [:index, :import]
+
   # GET /tools
   # GET /tools.json
   def index
@@ -34,6 +37,12 @@ class ToolsController < ApplicationController
     end
 
     @tools = @tools.paginate(:page => params[:page]).per_page(20)
+
+    respond_to do |format|
+      format.html
+      authorize! :export, Tool
+      format.csv { send_data CSVImportExport.to_csv(Tool, @csv_attributes, @csv_dependents), filename: "tools-#{Date.today}.csv" }
+    end
   end
 
   # GET /tools/1
@@ -72,10 +81,24 @@ class ToolsController < ApplicationController
     respond_with(@tool)
   end
 
+  def import
+    authorize! :import, Tool
+
+    if params[:delete_all_tools] then Tool.destroy_all end
+    status = CSVImportExport.from_csv(Tool, @csv_attributes, @csv_dependents, params[:file])
+    message = CSVImportExport.as_message(Tool, status)
+
+    redirect_to :back, :flash => message
+  end
+
   private
 
   def tool_params
     params.require(:tool).permit(:name, :description, :barcode, :tool_type_id)
   end
-end
 
+  def set_csv_descriptor
+    @csv_attributes = ["id", "barcode", "description"]
+    @csv_dependents = [ [ToolType, lambda { | t | t.tool_type }, ["name"], ["tool_type"], "name"] ]
+  end
+end

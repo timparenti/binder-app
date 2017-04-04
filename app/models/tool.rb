@@ -23,9 +23,9 @@
 
 class Tool < ActiveRecord::Base
   has_many :checkouts, dependent: :destroy
-  has_many :participants, :through => :checkouts
-  has_many :organizations, :through => :checkouts
-  belongs_to :tool_type
+  has_many :participants, :through => :checkouts, dependent: :nullify
+  has_many :organizations, :through => :checkouts, dependent: :nullify
+  belongs_to :tool_type, dependent: :destroy
 
   validates :barcode, :presence => true, :uniqueness => true, :length => { :minimum => 1, :maximum => 5}
   validates_presence_of :tool_type_id

@@ -1,12 +1,21 @@
 class MembershipsController < ApplicationController
-  load_and_authorize_resource 
+  load_and_authorize_resource
   skip_load_resource :only => [:create, :update]
   responders :flash, :http_cache
+
+  include CSVImportExport
+  before_filter :set_csv_descriptor, :only => [:index, :import]
 
   # GET /memberships
   # GET /memberships.json
   def index
     @memberships = Membership.all
+
+    respond_to do |format|
+      format.html { redirect_to admin_area_path }
+      authorize! :export, Shift
+      format.csv { send_data CSVImportExport.to_csv(Membership, @csv_attributes, @csv_dependents), filename: "participants-#{Date.today}.csv" }
+    end
   end
 
   #declare error / info classes
@@ -105,10 +114,26 @@ class MembershipsController < ApplicationController
     @membership.destroy
     respond_with @membership, location: -> { @participant }
   end
-  
+
+  def import
+    authorize! :import, Membership
+
+    if params[:delete_all_memberships] then Membership.destroy_all end
+    status = CSVImportExport.from_csv(Membership, @csv_attributes, @csv_dependents, params[:file])
+    message = CSVImportExport.as_message(Membership, status)
+
+    redirect_to :back, :flash => message
+  end
+
   private
-  
+
   def update_params
     params.require(:membership).permit(:is_booth_chair, :title, :booth_chair_order)
+  end
+
+  def set_csv_descriptor
+    @csv_attributes = ["id", "is_booth_chair", "title"]
+    @csv_dependents = [ [Organization, lambda { | x | x.organization }, ["name"], ["organization"], "name"],
+                        [Participant, lambda { | x | x.participant }, ["andrewid"], ["andrewid"], "andrewid"] ]
   end
 end

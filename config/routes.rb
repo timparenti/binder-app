@@ -1,5 +1,6 @@
 Trailerapp::Application.routes.draw do
 
+  resources :admin_area, :only => [:index]
   resources :event_types
   resources :events do
      member do
@@ -17,6 +18,7 @@ Trailerapp::Application.routes.draw do
     resources :charges, :only => [:index]
     get 'hardhats', on: :member
     resources :downtime, :controller => :organization_timeline_entries, :only => [:index]
+    collection { post :import }
   end
   resources :organization_timeline_entries, :controller => :organization_timeline_entries, :only => [:show,:edit, :create, :update, :destroy] do
     put 'end', on: :member
@@ -35,11 +37,16 @@ Trailerapp::Application.routes.draw do
     post 'lookup', on: :collection
   end
 
+  resources :memberships, :only => [:index, :import] do
+    collection { post :import }
+  end
+
   get 'waiver' => 'waivers#new'
   resource :waiver, :except => [:edit, :destroy, :show, :update]
-  
+
   resources :shifts do
     resources :participants, :controller => :shift_participants, :only => [:new, :create, :destroy]
+    collection { post :import }
   end
   resources :tasks do
     member do
@@ -50,6 +57,7 @@ Trailerapp::Application.routes.draw do
     resources :checkouts, :only => [:new, :create, :update, :index] do
       post 'choose_organization', on: :collection
     end
+    collection { post :import }
   end
 
   resources :tool_types , :except => [:show] do

@@ -1,7 +1,10 @@
 class ShiftsController < ApplicationController
-  load_and_authorize_resource skip_load_resource only: [:create] 
+  load_and_authorize_resource skip_load_resource only: [:create]
   before_action :set_shift, only: [:show, :edit, :update, :destroy]
-  
+
+  include CSVImportExport
+  before_filter :set_csv_descriptor, :only => [:index, :import]
+
   # GET /shifts
   # GET /shifts.json
   # Regular index is watch shifts by default
@@ -28,6 +31,12 @@ class ShiftsController < ApplicationController
     end
 
     @shifts = @shifts.paginate(:page => params[:page]).per_page(20)
+
+    respond_to do |format|
+      format.html
+      authorize! :export, Shift
+      format.csv { send_data CSVImportExport.to_csv(Shift, @csv_attributes, @csv_dependents), filename: "shifts-#{Date.today}.csv" }
+    end
   end
 
   # GET /shifts/1
@@ -68,6 +77,16 @@ class ShiftsController < ApplicationController
     respond_with(@shift)
   end
 
+  def import
+    authorize! :import, Shift
+
+    if params[:delete_all_shifts] then Shift.delete_all end
+    status = CSVImportExport.from_csv(Shift, @csv_attributes, @csv_dependents, params[:file])
+    message = CSVImportExport.as_message(Shift, status)
+
+    redirect_to :back, :flash => message
+  end
+
   private
 
   def set_shift
@@ -76,5 +95,11 @@ class ShiftsController < ApplicationController
 
   def shift_params
     params.require(:shift).permit(:starts_at, :ends_at, :shift_type_id, :organization_id, :required_number_of_participants, :description)
+  end
+
+  def set_csv_descriptor
+    @csv_attributes = ["id", "starts_at", "ends_at", "description", "required_number_of_participants"]
+    @csv_dependents = [ [ShiftType, lambda { | t | t.shift_type }, ["name"], ["shift_type"], "name"],
+                        [Organization, lambda { | t | t.organization }, ["name"], ["organization"], "name"] ]
   end
 end
