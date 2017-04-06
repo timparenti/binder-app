@@ -111,6 +111,10 @@ group :test do
   gem 'shoulda'
   gem 'shoulda-matchers'
 
+  #For rpsec tests
+  gem 'rspec'
+  gem 'database_cleaner'
+
   # For Factories
   gem 'factory_girl_rails'
 
