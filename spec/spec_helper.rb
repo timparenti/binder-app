@@ -16,6 +16,9 @@ RSpec.configure do |config|
   end
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
+
+  #this should be calling FakeSMS module everytime Messenger is called in the model (when doing the notification)
+  #
   config.before(:each) do
     stub_const('Messenger', FakeSMS)
   end
