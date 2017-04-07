@@ -1,6 +1,6 @@
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
-require 'rspec/rails'
+require 'rspec'
 require 'database_cleaner'
 include Messenger 
 include FakeSMS
@@ -16,9 +16,8 @@ RSpec.configure do |config|
   end
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
-
   config.before(:each) do
-    stub_const('Messenger', 'FakeSMS')
+    stub_const('Messenger', FakeSMS)
   end
 
   config.before(:suite) do
