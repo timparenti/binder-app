@@ -15,6 +15,7 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  config.expect_with(:rspec) { |c| c.syntax = :should }
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
   #this should be calling FakeSMS module everytime Messenger is called in the model (when doing the notification)
