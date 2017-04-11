@@ -18,10 +18,20 @@ RSpec.configure do |config|
   config.expect_with(:rspec) { |c| c.syntax = :should }
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
+  config.around(:each, :delayed_job) do |example|
+    old_value = Delayed::Worker.delay_jobs
+    Delayed::Worker.delay_jobs = true
+    Delayed::Job.destroy_all
+
+    example.run
+
+    Delayed::Worker.delay_jobs = old_value
+  end
+
   #this should be calling FakeSMS module everytime Messenger is called in the model (when doing the notification)
-  #
+
   config.before(:each) do
-    stub_const('Messenger', FakeSMS)
+    stub_const('Messenger', 'lib/FakeSMS.rb')
   end
 
   config.before(:suite) do
